@@ -10,7 +10,6 @@ wheels/
 .venv
 .python-version
 
-# Analysis outputs (notebook-generated; not used as processed pipeline inputs)
 data/raw/
 data/analysis/
 docs/qa/
