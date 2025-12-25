@@ -1,0 +1,72 @@
+[project]
+name = "thamesconnectivityanalysis"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "geopandas>=1.1.2",
+    "shapely==2.1.2",
+    "matplotlib>=3.10.8",
+    "networkx>=3.4.2",
+    "numpy>=2.2.6",
+    "pandas>=2.3.3",
+    "pydantic>=2.11.0",
+    "requests>=2.32.5",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.14.6",
+    "tabulate>=0.9.0",
+    "tenacity>=9.1.2",
+    "pyyaml>=6.0.2",
+    "pyaml>=25.7.0",
+    "scikit-learn>=1.8.0",
+]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+# We treat the repo's `src/` directory as an actual Python package named `src`,
+# so notebooks can reliably `import src...` after installing the project.
+where = ["."]
+include = ["src*"]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "ipykernel>=6.29.0",
+    "ruff>=0.12.0",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+# Lint project code (repo root is fine; Ruff will discover Python files).
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+# Start with high-signal, low-noise rulesets.
+# - E/F: pycodestyle + pyflakes (common correctness issues)
+# - I: import sorting (keeps diffs clean)
+# - UP: pyupgrade (modern Python patterns)
+# - B: flake8-bugbear (likely bugs)
+# - C4: flake8-comprehensions (better comprehensions)
+select = ["E", "F", "I", "UP", "B", "C4"]
+
+# Keep Black/Ruff-format compatibility; long lines are handled by formatter decisions.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Our runnable scripts intentionally prepend repo-root to sys.path so `import src...` works
+# when executing `python scripts/...` directly. That pattern requires imports after the
+# sys.path mutation, which triggers E402.
+"scripts/**/*.py" = ["E402"]
+# Notebooks often have unused imports for experimentation
+"notebooks/**/*.ipynb" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
