@@ -10,8 +10,7 @@ wheels/
 .venv
 .python-version
 
-data/raw/
-data/analysis/
+data/
 docs/qa/
 docs/
 
