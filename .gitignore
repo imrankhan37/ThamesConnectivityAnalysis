@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.python-version
+
+# Analysis outputs (notebook-generated; not used as processed pipeline inputs)
+data/raw/
+data/analysis/
+docs/qa/
+docs/
+
+.vscode/
