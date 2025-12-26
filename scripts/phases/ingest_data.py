@@ -1,4 +1,4 @@
-"""Ingest all core datasets (transit + Thames + LSOA/IMD) in one run.
+"""Ingest all core datasets (transit + Thames + London boundary) in one run.
 
 Run:
   uv run python scripts/phases/ingest_data.py
@@ -54,7 +54,7 @@ def main() -> None:
     ingestion_steps = [
         ("scripts.data_ingestion.01_ingest_transit", "transit", not args.skip_transit),
         ("scripts.data_ingestion.02_ingest_thames", "thames", not args.skip_thames),
-        ("scripts.data_ingestion.03_ingest_lsoa_imd", "lsoa_imd", not args.skip_lsoa_imd),
+        ("scripts.data_ingestion.03_ingest_boundary", "boundary", not args.skip_boundary),
     ]
 
     for module_name, step_name, should_run in ingestion_steps:

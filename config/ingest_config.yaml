@@ -22,26 +22,16 @@ thames:
   outputs:
     centerline_geojson: "thames_centerline.geojson"
 
-lsoa_imd:
+boundary:
   arcgis:
-    # Page size for bbox-paged fetches
-    chunk: 1000
     timeouts_seconds:
-      count: 120
-      page: 180
       where: 120
   sources:
-    lsoa_featureserver: "https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Lower_layer_Super_Output_Areas_December_2021_Boundaries_EW_BFE_V10/FeatureServer/0"
     regions_featureserver_0: "https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Regions_December_2021_EN_BGC_2022/FeatureServer/0"
     london_region_code: "E12000007"
-    imd_file7_url: "https://assets.publishing.service.gov.uk/media/691ded56d140bbbaa59a2a7d/File_7_IoD2025_All_Ranks_Scores_Deciles_Population_Denominators.csv"
   outputs:
     regions_gpkg: "ons_regions_2021_en_bgc.gpkg"
     regions_layer: "regions2021"
-    lsoa_gpkg: "lsoa_2021_ew_bfe_v10_london_bbox.gpkg"
-    lsoa_layer: "lsoa2021"
-    imd_raw_csv: "imd_2025_file7.csv"
-    imd_london_csv: "imd_2025_london.csv"
 
 
 

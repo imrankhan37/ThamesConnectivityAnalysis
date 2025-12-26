@@ -59,19 +59,6 @@ EDGES = TableSchema(
     non_null=("u", "v"),
 )
 
-STATION_LSOA = TableSchema(
-    name="station_lsoa",
-    required_columns=("station_id", "lsoa_code"),
-    optional_columns=("method", "distance_m"),
-    dtypes={
-        "station_id": "string",
-        "lsoa_code": "string",
-        "method": "string",
-        "distance_m": "Float64",
-    },
-    non_null=("station_id",),
-)
-
 STATION_BANK = TableSchema(
     name="station_bank",
     required_columns=("station_id", "bank"),

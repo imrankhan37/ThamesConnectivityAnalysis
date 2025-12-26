@@ -13,7 +13,6 @@ from src.models.schemas import (
     EDGE_CROSSING,
     EDGES,
     STATION_BANK,
-    STATION_LSOA,
     STATIONS,
 )
 
@@ -30,7 +29,6 @@ class AnalysisDataset:
 
     # Spatial enrichment data (conditionally loaded)
     station_bank: pd.DataFrame | None
-    station_lsoa: pd.DataFrame | None
     edge_crossing: pd.DataFrame | None
 
     # Computed graph properties
@@ -49,7 +47,6 @@ def load_analysis_dataset(
     use_gcc: bool = True,
     validate_schemas: bool = True,
     load_spatial: bool = True,
-    load_equity: bool = False,
     weight_col: str | None = None,
 ) -> AnalysisDataset:
     """Load and validate core analysis dataset."""
@@ -85,16 +82,6 @@ def load_analysis_dataset(
         )
         LOGGER.info("Spatial data validation passed")
 
-    station_lsoa = None
-    if load_equity:
-        LOGGER.info("Loading equity analysis data...")
-        station_lsoa = read_csv_validated(
-            paths.processed_spatial / "station_lsoa.csv",
-            dtype={"station_id": "string"},
-            schema=STATION_LSOA,
-        )
-        LOGGER.info("Equity data validation passed")
-
     # Build graphs (unweighted always; weighted optional)
     LOGGER.info("Building network graph (use_gcc=%s)...", use_gcc)
     graph_result = build_graph_from_edges(
@@ -120,7 +107,6 @@ def load_analysis_dataset(
         "gcc_share": float(n_gcc / n_stations) if n_stations else 0.0,
         "use_gcc": bool(use_gcc),
         "has_spatial": bool(load_spatial),
-        "has_equity": bool(load_equity),
         "has_weights": bool(weight_col is not None),
         "weight_col": str(weight_col) if weight_col is not None else None,
     }
@@ -155,7 +141,6 @@ def load_analysis_dataset(
         stations=stations,
         edges=edges,
         station_bank=station_bank,
-        station_lsoa=station_lsoa,
         edge_crossing=edge_crossing,
         graph=graph_result.G,
         graph_weighted=graph_weighted,

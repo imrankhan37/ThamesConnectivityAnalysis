@@ -3,13 +3,10 @@ Run from repo root:
   uv run python scripts/phases/spatial_processor.py
 
 Processing steps:
-1. Export London LSOA subset to GeoJSON
-2. Spatial join stations to LSOA polygons
-3. Bank classification and Thames crossing detection
+1. Bank classification (north/south of Thames)
+2. Thames crossing detection (edge-level)
 
 Outputs:
-- data/processed/boundaries/lsoa_london.geojson
-- data/processed/spatial/station_lsoa.csv
 - data/processed/spatial/station_bank.csv
 - data/processed/spatial/edge_is_thames_crossing.csv
 - data/processed/spatial/crossing_count.csv
@@ -32,11 +29,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from src.core.config import CRS_BNG, CRS_WGS84, configure_logging, get_paths
+from src.core.config import CRS_BNG, configure_logging, get_paths
 from src.geo.spatial import (
     classify_station_bank_by_local_orientation,
     label_thames_crossing_edges,
-    spatial_join_stations_to_lsoa,
     stations_to_gdf,
 )
 from src.io import ensure_unzipped, read_csv_validated
@@ -44,7 +40,6 @@ from src.models.schemas import (
     EDGE_CROSSING,
     EDGES,
     STATION_BANK,
-    STATION_LSOA,
     STATIONS,
 )
 from src.models.validate import validate_df
@@ -59,13 +54,10 @@ class SpatialConfig:
     # File paths
     stations_csv: Path
     edges_csv: Path
-    lsoa_gpkg: Path
     river_geojson: Path
     boundary_gpkg: Path
 
     # Processing parameters
-    lsoa_simplify_tolerance_m: float = 25.0
-    station_lsoa_nearest_max_m: float = 750.0
     crossing_buffer_m: float = 75.0
     figure_size: tuple[float, float] = (9.5, 9.5)
     plot_dpi: int = 300
@@ -76,7 +68,6 @@ class SpatialConfig:
         return cls(
             stations_csv=paths.processed_transit / "stations_london.csv",
             edges_csv=paths.processed_transit / "edges_london.csv",
-            lsoa_gpkg=paths.data_raw / "lsoa_2021_ew_bfe_v10_london_bbox.gpkg",
             river_geojson=paths.data_raw / "thames_centerline.geojson",
             boundary_gpkg=paths.data_raw / "ons_regions_2021_en_bgc.gpkg",
         )
@@ -100,35 +91,11 @@ class SpatialProcessor:
         LOGGER.info("  Edges: %s", self.config.edges_csv)
         return self
 
-    def export_lsoa(self):
-        """Export London LSOA subset to GeoJSON."""
-        LOGGER.info("Step: LSOA GeoJSON export")
-
-        out_path = self.paths.processed_boundaries / "lsoa_london.geojson"
-
-        lsoa_gpkg = ensure_unzipped(self.config.lsoa_gpkg)
-        gdf = gpd.read_file(lsoa_gpkg, layer="lsoa2021").to_crs(CRS_BNG)
-        LOGGER.info("Loaded LSOA polygons: %d", len(gdf))
-
-        # Topology-preserving simplification in meters
-        gdf["geometry"] = gdf["geometry"].simplify(
-            self.config.lsoa_simplify_tolerance_m, preserve_topology=True
-        )
-        gdf = gdf.to_crs(CRS_WGS84)
-
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        gdf.to_file(out_path, driver="GeoJSON")
-        LOGGER.info(
-            "Wrote %s (simplify_tol_m=%.1f)", out_path, self.config.lsoa_simplify_tolerance_m
-        )
-        return self
-
     def load_datasets(self):
         """Load all London datasets needed for spatial processing."""
         LOGGER.info("Loading London datasets...")
 
         # Support zipped raw artifacts for upload-size constraints.
-        lsoa_gpkg = ensure_unzipped(self.config.lsoa_gpkg)
         river_geojson = ensure_unzipped(self.config.river_geojson)
         boundary_gpkg = ensure_unzipped(self.config.boundary_gpkg)
 
@@ -143,48 +110,22 @@ class SpatialProcessor:
         # Convert stations to GeoDataFrame
         stations_gdf = stations_to_gdf(stations)
 
-        # Load LSOA data
-        lsoa_gdf = gpd.read_file(lsoa_gpkg, layer="lsoa2021")
-
         # Load Thames centerline
         river_gdf = gpd.read_file(river_geojson)
 
         LOGGER.info(
-            "Loaded: %d stations, %d edges, %d LSOA polygons",
+            "Loaded: %d stations, %d edges",
             len(stations),
             len(edges),
-            len(lsoa_gdf),
         )
 
         self.datasets = {
             "stations": stations,
             "edges": edges,
             "stations_gdf": stations_gdf,
-            "lsoa_gdf": lsoa_gdf,
             "river_gdf": river_gdf,
             "boundary_gpkg": boundary_gpkg,
         }
-        return self
-
-    def process_station_lsoa(self):
-        """Spatial join stations to LSOA polygons with QA report."""
-        LOGGER.info("Step: Station to LSOA spatial join")
-
-        station_lsoa, qa = spatial_join_stations_to_lsoa(
-            stations_gdf_wgs84=self.datasets["stations_gdf"],
-            lsoa_gdf_wgs84=self.datasets["lsoa_gdf"],
-            lsoa_code_col="LSOA21CD",
-            nearest_max_m=self.config.station_lsoa_nearest_max_m,
-        )
-
-        station_lsoa = validate_df(station_lsoa, STATION_LSOA)
-        out_csv = self.paths.processed_spatial / "station_lsoa.csv"
-        out_csv.parent.mkdir(parents=True, exist_ok=True)
-        station_lsoa.to_csv(out_csv, index=False)
-        LOGGER.info("Wrote %s", out_csv)
-
-        # QA report
-        self._write_station_lsoa_qa_report(qa)
         return self
 
     def process_bank_crossings(self):
@@ -376,15 +317,7 @@ def main() -> None:
     paths = get_paths()
     config = SpatialConfig.from_paths(paths)
 
-    (
-        SpatialProcessor(config)
-        .setup()
-        .export_lsoa()
-        .load_datasets()
-        .process_station_lsoa()
-        .process_bank_crossings()
-        .complete()
-    )
+    (SpatialProcessor(config).setup().load_datasets().process_bank_crossings().complete())
 
 
 if __name__ == "__main__":

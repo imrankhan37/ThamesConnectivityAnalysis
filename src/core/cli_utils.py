@@ -25,7 +25,9 @@ def add_skip_flags(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--skip-transit", action="store_true", help="Skip TfL transit ingest.")
     parser.add_argument("--skip-thames", action="store_true", help="Skip Thames geometry ingest.")
     parser.add_argument(
-        "--skip-lsoa-imd", action="store_true", help="Skip LSOA boundaries + IMD ingest."
+        "--skip-boundary",
+        action="store_true",
+        help="Skip London boundary ingest (ONS regions polygon used for London-only filtering/plots).",
     )
     parser.add_argument(
         "--write-qa",

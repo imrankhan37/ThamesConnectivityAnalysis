@@ -11,7 +11,6 @@ from src.models.schemas import (
     EDGE_CROSSING,
     EDGES,
     STATION_BANK,
-    STATION_LSOA,
     STATIONS,
     TableSchema,
 )
@@ -22,7 +21,6 @@ __all__ = [
     "validate_df",
     "STATIONS",
     "EDGES",
-    "STATION_LSOA",
     "STATION_BANK",
     "EDGE_CROSSING",
 ]
