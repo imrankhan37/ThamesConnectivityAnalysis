@@ -42,7 +42,7 @@ from src.data_processing.network_build import (
     filter_stations_by_geography,
     stations_from_stop_points_and_sequences,
 )
-from src.io import read_json
+from src.io import ensure_unzipped, read_json
 from src.models.schemas import EDGES, STATIONS
 from src.models.validate import validate_df
 
@@ -102,25 +102,28 @@ def _plot_network_overview(stations: pd.DataFrame, edges: pd.DataFrame, out_path
 
     # Optional: overlay official London boundary if present
     boundary_path = out_path.parents[1] / "data" / "raw" / "ons_regions_2021_en_bgc.gpkg"
-    if boundary_path.exists():
-        try:
-            london = gpd.read_file(boundary_path)
-            if not london.empty and london.geometry.notna().any():
-                london = london.to_crs(CRS_PLOT)
-                london.boundary.plot(
-                    ax=ax,
-                    color=BOUNDARY_COLOR,
-                    linewidth=BOUNDARY_LINEWIDTH,
-                    alpha=BOUNDARY_ALPHA,
-                    zorder=1,
-                )
-                minx, miny, maxx, maxy = london.total_bounds
-                pad_x = (maxx - minx) * PADDING_FACTOR
-                pad_y = (maxy - miny) * PADDING_FACTOR
-                ax.set_xlim(minx - pad_x, maxx + pad_x)
-                ax.set_ylim(miny - pad_y, maxy + pad_y)
-        except Exception as exc:
-            LOGGER.warning("Could not overlay London boundary (%s): %s", boundary_path, exc)
+    try:
+        boundary_path = ensure_unzipped(boundary_path)
+        london = gpd.read_file(boundary_path)
+        if not london.empty and london.geometry.notna().any():
+            london = london.to_crs(CRS_PLOT)
+            london.boundary.plot(
+                ax=ax,
+                color=BOUNDARY_COLOR,
+                linewidth=BOUNDARY_LINEWIDTH,
+                alpha=BOUNDARY_ALPHA,
+                zorder=1,
+            )
+            minx, miny, maxx, maxy = london.total_bounds
+            pad_x = (maxx - minx) * PADDING_FACTOR
+            pad_y = (maxy - miny) * PADDING_FACTOR
+            ax.set_xlim(minx - pad_x, maxx + pad_x)
+            ax.set_ylim(miny - pad_y, maxy + pad_y)
+    except FileNotFoundError:
+        # overlay is optional; proceed without it
+        pass
+    except Exception as exc:
+        LOGGER.warning("Could not overlay London boundary (%s): %s", boundary_path, exc)
 
     # Project stations to plotting CRS
     st_valid = st.dropna(subset=["lon", "lat"]).copy()
@@ -258,6 +261,7 @@ def main() -> None:
     stations_london_out = paths.processed_transit / STATIONS_LONDON_FILE
     edges_london_out = paths.processed_transit / EDGES_LONDON_FILE
     boundary_gpkg = paths.data_raw / ONS_BOUNDARY_FILE
+    boundary_gpkg = ensure_unzipped(boundary_gpkg)
 
     st_l, e_l = filter_stations_by_geography(stations, edges, boundary_gpkg)
     st_l = validate_df(st_l, STATIONS)
