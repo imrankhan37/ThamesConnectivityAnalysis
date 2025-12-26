@@ -39,7 +39,7 @@ from src.geo.spatial import (
     spatial_join_stations_to_lsoa,
     stations_to_gdf,
 )
-from src.io import read_csv_validated
+from src.io import ensure_unzipped, read_csv_validated
 from src.models.schemas import (
     EDGE_CROSSING,
     EDGES,
@@ -106,7 +106,8 @@ class SpatialProcessor:
 
         out_path = self.paths.processed_boundaries / "lsoa_london.geojson"
 
-        gdf = gpd.read_file(self.config.lsoa_gpkg, layer="lsoa2021").to_crs(CRS_BNG)
+        lsoa_gpkg = ensure_unzipped(self.config.lsoa_gpkg)
+        gdf = gpd.read_file(lsoa_gpkg, layer="lsoa2021").to_crs(CRS_BNG)
         LOGGER.info("Loaded LSOA polygons: %d", len(gdf))
 
         # Topology-preserving simplification in meters
@@ -126,6 +127,11 @@ class SpatialProcessor:
         """Load all London datasets needed for spatial processing."""
         LOGGER.info("Loading London datasets...")
 
+        # Support zipped raw artifacts for upload-size constraints.
+        lsoa_gpkg = ensure_unzipped(self.config.lsoa_gpkg)
+        river_geojson = ensure_unzipped(self.config.river_geojson)
+        boundary_gpkg = ensure_unzipped(self.config.boundary_gpkg)
+
         # Load and validate stations/edges
         stations = read_csv_validated(
             self.config.stations_csv, dtype={"station_id": "string"}, schema=STATIONS
@@ -138,10 +144,10 @@ class SpatialProcessor:
         stations_gdf = stations_to_gdf(stations)
 
         # Load LSOA data
-        lsoa_gdf = gpd.read_file(self.config.lsoa_gpkg, layer="lsoa2021")
+        lsoa_gdf = gpd.read_file(lsoa_gpkg, layer="lsoa2021")
 
         # Load Thames centerline
-        river_gdf = gpd.read_file(self.config.river_geojson)
+        river_gdf = gpd.read_file(river_geojson)
 
         LOGGER.info(
             "Loaded: %d stations, %d edges, %d LSOA polygons",
@@ -156,7 +162,7 @@ class SpatialProcessor:
             "stations_gdf": stations_gdf,
             "lsoa_gdf": lsoa_gdf,
             "river_gdf": river_gdf,
-            "boundary_gpkg": self.config.boundary_gpkg,
+            "boundary_gpkg": boundary_gpkg,
         }
         return self
 
