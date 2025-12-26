@@ -29,7 +29,14 @@ from bootstrap import ensure_repo_root_on_path
 ensure_repo_root_on_path(__file__)
 
 from src.core.config import LONDON_BBOX_WGS84, configure_logging, get_paths
-from src.io import IngestRecord, cached, load_ingest_config, sha256_file, upsert_ingest_summary
+from src.io import (
+    IngestRecord,
+    cached,
+    ensure_unzipped,
+    load_ingest_config,
+    sha256_file,
+    upsert_ingest_summary,
+)
 
 LOGGER = logging.getLogger("ingest_thames")
 
@@ -47,12 +54,7 @@ ARG_CHECKPOINT = "--checkpoint"
 
 def load_thames_from_os_open_rivers(paths) -> gpd.GeoDataFrame:
     """Load River Thames segments from OS Open Rivers GeoPackage."""
-    src = paths.data_raw / OS_OPEN_RIVERS_FILE
-    if not src.exists():
-        raise FileNotFoundError(
-            f"Missing OS Open Rivers GeoPackage at {src}. "
-            "Download OS Open Rivers as GeoPackage and place it there."
-        )
+    src = ensure_unzipped(paths.data_raw / OS_OPEN_RIVERS_FILE)
 
     gdf = gpd.read_file(src, layer=OS_OPEN_RIVERS_LAYER)
     if gdf.empty:
