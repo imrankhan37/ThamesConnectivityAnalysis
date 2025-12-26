@@ -19,6 +19,25 @@ import yaml
 
 from src.models.validate import validate_df
 
+from .compressed import ensure_unzipped
+
+__all__ = [
+    "IngestRecord",
+    "cached",
+    "download_file",
+    "ensure_parent_dir",
+    "ensure_unzipped",
+    "get_json",
+    "infer_lsoa_code_column",
+    "load_ingest_config",
+    "read_csv_validated",
+    "read_json",
+    "sha256_file",
+    "upsert_ingest_summary",
+    "write_json",
+    "write_text",
+]
+
 
 def ensure_parent_dir(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
