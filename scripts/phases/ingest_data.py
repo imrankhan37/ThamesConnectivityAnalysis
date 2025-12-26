@@ -30,11 +30,12 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _run_ingestion_step(module_name: str, step_name: str, stats: IngestStats) -> bool:
+def _run_ingestion_step(module_name: str, step_name: str, stats: IngestStats, args) -> bool:
     try:
         LOGGER.info("Running %s ingest...", step_name)
         mod = importlib.import_module(module_name)
-        step_stats = mod.run()
+        # Individual ingestion steps keep a stable interface: (force, checkpoint).
+        step_stats = mod.run(force=args.force, checkpoint=args.checkpoint)
         stats.update(step_stats)
         stats.add_step(step_name)
         LOGGER.info("Completed %s ingest", step_name)
@@ -58,7 +59,7 @@ def main() -> None:
 
     for module_name, step_name, should_run in ingestion_steps:
         if should_run:
-            _run_ingestion_step(module_name, step_name, stats)
+            _run_ingestion_step(module_name, step_name, stats, args)
         else:
             LOGGER.info("Skipping %s ingest", step_name)
 
