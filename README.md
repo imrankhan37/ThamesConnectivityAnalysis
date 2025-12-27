@@ -126,6 +126,18 @@ Network vulnerability to cascading failures, with focus on cross-Thames connecti
 
 ## Reproducibility Notes
 
+### Hardware Requirements
+- **Minimum**: 4GB RAM, any modern CPU (tested on Intel/AMD x64)
+- **Recommended**: 8GB+ RAM for large spatial operations
+- **Tested Platform**: WSL2 Ubuntu on Windows 11, Intel Core processor
+
+### Performance
+- **Total runtime**: 5-10 minutes for complete pipeline on modern hardware
+  - Phase 1 (Data Ingestion): ~2-3 minutes
+  - Phase 2 (Network Construction): ~1-2 minutes
+  - Phase 3 (Spatial Processing): ~1-2 minutes
+  - Phase 4 (Analysis Notebooks): ~1-2 minutes per notebook
+
 ### Dependencies
 - All dependencies pinned in `pyproject.toml` with lockfile `uv.lock`
 - Tested on Python 3.11 with UV package manager
