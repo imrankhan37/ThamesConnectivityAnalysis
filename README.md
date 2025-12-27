@@ -44,7 +44,7 @@ uv run jupyter notebook notebooks/
 1. **Data Ingestion** (`scripts/phases/ingest_data.py`)
    - TfL transit data (stations, routes, sequences)
    - Thames centerline geometry
-   - LSOA boundaries and IMD deprivation indices
+   - London boundary polygon (for London-only filtering/plots)
 
 2. **Network Construction** (`scripts/phases/transform_load_network_data.py`)
    - Station-edge graph from TfL route sequences
@@ -52,7 +52,6 @@ uv run jupyter notebook notebooks/
    - Network validation and visualization
 
 3. **Spatial Processing** (`scripts/phases/spatial_processor.py`)
-   - Station-LSOA spatial joins
    - Thames bank classification
    - Cross-river connectivity detection
 
@@ -60,7 +59,7 @@ uv run jupyter notebook notebooks/
    - `01_network_metrics.ipynb`: Basic network properties and centrality
    - `02_h1_bottleneck_analysis.ipynb`: Critical node identification
    - `03_h2_resilience_analysis.ipynb`: Failure cascade modeling
-   - `04_h3_equity_analysis.ipynb`: Cross-Thames accessibility patterns
+   - `04_null_model_and_legacy_equity.ipynb`: Legacy/optional notebook (null-model validation + removed equity extension; not used by the current H1/H2 report; equity section depends on removed LSOA/IMD artifacts)
 
 ### Directory Structure
 ```
@@ -97,7 +96,7 @@ ThamesConnectivityAnalysis/
 
 ### Required raw data (OS Open Rivers is manual)
 - **TfL API (auto-ingested)**: stop points, route sequences, line information (downloaded by `scripts/phases/ingest_data.py`).
-- **ONS Geography + IMD (auto-ingested)**: LSOA boundaries + IMD (downloaded by `scripts/phases/ingest_data.py`).
+- **ONS Geography (auto-ingested)**: London boundary polygon (downloaded by `scripts/phases/ingest_data.py`).
 - **OS Open Rivers (manual)**: you must download the OS Open Rivers GeoPackage and place it at:
   - `data/raw/oprvrs_gb.gpkg`
 
@@ -124,9 +123,6 @@ Critical stations whose removal disproportionately impacts network connectivity,
 
 ### H2: Resilience Analysis
 Network vulnerability to cascading failures, with focus on cross-Thames connectivity preservation.
-
-### H3: Equity Assessment
-Systematic accessibility disparities between north and south London, correlated with deprivation indices.
 
 ## Reproducibility Notes
 
