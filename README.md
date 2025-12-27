@@ -10,11 +10,18 @@ A network analysis of London's transit system examining connectivity patterns, b
 ### Setup
 ```bash
 # Clone and setup
-git clone <repository-url>
+git clone https://github.com/imrankhan37/ThamesConnectivityAnalysis.git
 cd ThamesConnectivityAnalysis
 chmod +x setup.sh
 ./setup.sh
 ```
+
+The `setup.sh` script will:
+- Create any missing directories (most already exist when cloning the repo)
+- Install all Python dependencies via UV
+- Display environment information and package versions for verification
+
+**Note**: Since most directories are already included in the repository, the main purpose of `setup.sh` after cloning is dependency installation and environment verification.
 
 ### If raw GeoPackages are provided as .zip (upload-size constraint)
 If you received `data/raw/*.zip` files (e.g. `oprvrs_gb.gpkg.zip`), unpack them first:
@@ -55,11 +62,11 @@ uv run jupyter notebook notebooks/
    - Thames bank classification
    - Cross-river connectivity detection
 
-4. **Analysis Notebooks** 
-   - `01_network_metrics.ipynb`: Basic network properties and centrality
-   - `02_h1_bottleneck_analysis.ipynb`: Critical node identification
-   - `03_h2_resilience_analysis.ipynb`: Failure cascade modeling
-   - `04_null_model_and_legacy_equity.ipynb`: Legacy/optional notebook (null-model validation + removed equity extension; not used by the current H1/H2 report; equity section depends on removed LSOA/IMD artifacts)
+4. **Analysis Notebooks**
+   - `01_network_metrics.ipynb`: Basic network properties and centrality analysis
+   - `02_h1_bottleneck_analysis.ipynb`: Cross-River Restricted Edge Betweenness (CRREB) analysis
+   - `03_h2_resilience_analysis.ipynb`: Network resilience to targeted crossing disruptions
+   - `04_h1_validation.ipynb`: Statistical validation using matched random-set null model
 
 ### Directory Structure
 ```
@@ -116,7 +123,7 @@ All raw datasets are preprocessed through validated schemas ensuring:
 - Spatial topology validation
 - Comprehensive QA reporting
 
-## Research Hypotheses
+## Hypotheses Tested
 
 ### H1: Bottleneck Identification
 Critical stations whose removal disproportionately impacts network connectivity, particularly at Thames crossing points.
