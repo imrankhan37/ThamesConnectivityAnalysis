@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import pickle
 import sys
 from pathlib import Path
 from typing import Any
@@ -49,7 +48,7 @@ from src.models.validate import validate_df
 # Constants
 CRS_PLOT = "EPSG:27700"  # British National Grid for correct geometry in meters
 CRS_INPUT = "EPSG:4326"  # WGS84 for input coordinates
-FIGURE_SIZE = (10, 10)
+FIGURE_SIZE = (10.0, 10.0)
 PLOT_DPI = 300
 BOUNDARY_COLOR = "#222222"
 BOUNDARY_ALPHA = 0.6
@@ -135,8 +134,8 @@ def _plot_network_overview(stations: pd.DataFrame, edges: pd.DataFrame, out_path
     st_x = st_gdf.geometry.x.to_numpy()
     st_y = st_gdf.geometry.y.to_numpy()
 
-    # Build segments in projected coordinates (LineCollection is much cleaner + faster than per-edge ax.plot)
-    # Note: edges are in station_id space; map to projected coordinates via index lookup.
+    # Build segments in projected coordinates
+    # Note: edges are in station_id space; map to projected coordinates via index lookup
     st_xy = pd.DataFrame({"x": st_gdf.geometry.x, "y": st_gdf.geometry.y}, index=st_gdf.index)
     ok2 = e["u"].isin(st_xy.index) & e["v"].isin(st_xy.index)
     e2 = e.loc[ok2, ["u", "v"]]
@@ -168,14 +167,19 @@ def _plot_network_overview(stations: pd.DataFrame, edges: pd.DataFrame, out_path
     )
 
     ax.set_title(
-        "TfL rapid-transit network (stations + adjacent-stop edges)\nONS London boundary (projected: EPSG:27700)"
+        "TfL rapid-transit network (stations + adjacent-stop edges)",
+        fontsize=18,
+        pad=10,
+        weight="normal",
     )
-    ax.set_xlabel("Easting (m)")
-    ax.set_ylabel("Northing (m)")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_xticks([])
+    ax.set_yticks([])
     ax.set_aspect("equal", adjustable="box")
     ax.grid(False)
     for spine in ax.spines.values():
-        spine.set_alpha(0.25)
+        spine.set_visible(False)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
@@ -292,17 +296,6 @@ def main() -> None:
     assert gcc_share >= MIN_LONDON_GCC_SHARE, (
         f"London-only GCC share too low: {gcc_share:.3f} < {MIN_LONDON_GCC_SHARE:.2f}"
     )
-
-    # Graph artifact
-
-    G_out = nx.Graph()
-    for sid in st_l["station_id"]:
-        G_out.add_node(sid)
-    for _, r in e_l.iterrows():
-        G_out.add_edge(r["u"], r["v"])
-    with open(graph_out, "wb") as f:
-        pickle.dump(G_out, f)
-    LOGGER.info("Wrote %s", graph_out)
 
     LOGGER.info("Wrote %s", stations_out)
     LOGGER.info("Wrote %s", edges_out)
