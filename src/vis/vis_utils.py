@@ -21,7 +21,7 @@ class MapStyle:
     """Consistent styling configuration for London map plot"""
 
     # Figure configuration
-    figsize: tuple[float, float] = (9.5, 9.5)
+    figsize: tuple[float, float] = (10.0, 10.0)
     figsize_dual: tuple[float, float] = (14.0, 6.5)
     facecolor: str = "white"
 
@@ -99,6 +99,7 @@ class LondonMapPlotter:
         return cls(context, style)
 
     def setup_london_axes(self, figsize: tuple[float, float] = None) -> tuple[plt.Figure, plt.Axes]:
+        """Setup London map axes (with no visible x/y axes)."""
         figsize = figsize or self.style.figsize
 
         fig, ax = plt.subplots(figsize=figsize)
@@ -121,15 +122,22 @@ class LondonMapPlotter:
             zorder=2,
         )
 
-        # Set extent with padding
+        # Set extent and remove axis formatting
         minx, miny, maxx, maxy, pad_x, pad_y = self.context.extent
         ax.set_xlim(minx - pad_x, maxx + pad_x)
         ax.set_ylim(miny - pad_y, maxy + pad_y)
 
-        # Standard formatting
-        ax.set_xlabel("Easting (m)")
-        ax.set_ylabel("Northing (m)")
         ax.set_aspect("equal", adjustable="box")
+
+        # Ensure the map has no x and y axis: remove ticks, labels, and axis border
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+        ax.spines["left"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
 
         return fig, ax
 
