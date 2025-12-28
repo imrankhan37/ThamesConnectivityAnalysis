@@ -17,7 +17,7 @@ cd ThamesConnectivityAnalysis
 chmod +x setup.sh
 ./setup.sh
 
-# 3. Unzip provided raw data (if needed)
+# 3. Unzip provided raw data
 bash scripts/unzip_raw_data.sh
 
 # 4. Run analysis notebooks directly
@@ -66,7 +66,7 @@ uv run python scripts/phases/spatial_processor.py
 uv run jupyter notebook notebooks/
 ```
 
-### Phase 1 Detail: Data Ingestion
+### Phase 1: Data Ingestion
 
 **Main script:** `scripts/phases/ingest_data.py`
 
