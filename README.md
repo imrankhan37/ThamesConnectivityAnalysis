@@ -29,7 +29,6 @@ uv run jupyter notebook notebooks/
 ### Prerequisites
 - [UV package manager](https://docs.astral.sh/uv/getting-started/installation/) (handles Python 3.11 automatically)
 
-## Data Provision Status
 
 ### ✅ Pre-Provided Data (No Processing Required)
 
@@ -40,9 +39,6 @@ The repository includes **all processed outputs** from Phases 1-3:
 | **Raw Data** | `data/raw/` | All source datasets | ✓ TfL stations/routes<br>✓ Thames centerline<br>✓ London boundaries<br>✓ OS Open Rivers |
 | **Phase 2 Outputs** | `data/processed/transit/` | Network construction | ✓ stations.csv<br>✓ edges.csv<br>✓ stations_london.csv<br>✓ edges_london.csv |
 | **Phase 3 Outputs** | `data/processed/spatial/` | Spatial processing | ✓ station_bank.csv<br>✓ edge_is_thames_crossing.csv<br>✓ crossing_count.csv |
-| **Network Graph** | `artifacts/` | Serialized NetworkX object | ✓ graph.pkl |
-
-### 📊 What Markers Need to Run
 
 Only the **analysis notebooks** (Phase 4):
 1. `01_network_metrics.ipynb` - Basic network properties
