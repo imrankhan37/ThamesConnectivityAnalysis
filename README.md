@@ -4,46 +4,82 @@ A network analysis of London's transit system examining connectivity patterns, b
 
 ## Quick Start
 
+### Analysis Only 
+
+**All preprocessed data is provided.** You can skip directly to the analysis notebooks:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/imrankhan37/ThamesConnectivityAnalysis.git
+cd ThamesConnectivityAnalysis
+
+# 2. Setup environment (installs dependencies only)
+chmod +x setup.sh
+./setup.sh
+
+# 3. Unzip provided raw data (if needed)
+bash scripts/unzip_raw_data.sh
+
+# 4. Run analysis notebooks directly
+uv run jupyter notebook notebooks/
+```
+
+**Time required: ~5 minutes total** (1-2 minutes per notebook)
+
 ### Prerequisites
 - [UV package manager](https://docs.astral.sh/uv/getting-started/installation/) (handles Python 3.11 automatically)
 
-### Setup
+## Data Provision Status
+
+### ✅ Pre-Provided Data (No Processing Required)
+
+The repository includes **all processed outputs** from Phases 1-3:
+
+| Phase | Output Location | Description | Files Included |
+|-------|----------------|-------------|----------------|
+| **Raw Data** | `data/raw/` | All source datasets | ✓ TfL stations/routes<br>✓ Thames centerline<br>✓ London boundaries<br>✓ OS Open Rivers |
+| **Phase 2 Outputs** | `data/processed/transit/` | Network construction | ✓ stations.csv<br>✓ edges.csv<br>✓ stations_london.csv<br>✓ edges_london.csv |
+| **Phase 3 Outputs** | `data/processed/spatial/` | Spatial processing | ✓ station_bank.csv<br>✓ edge_is_thames_crossing.csv<br>✓ crossing_count.csv |
+| **Network Graph** | `artifacts/` | Serialized NetworkX object | ✓ graph.pkl |
+
+### 📊 What Markers Need to Run
+
+Only the **analysis notebooks** (Phase 4):
+1. `01_network_metrics.ipynb` - Basic network properties
+2. `02_h1_bottleneck_analysis.ipynb` - CRREB analysis
+3. `03_h2_resilience_analysis.ipynb` - Resilience testing
+4. `04_h1_validation.ipynb` - Statistical validation
+
+## Full Pipeline
+
+### Complete Pipeline Execution (Optional)
+
+If you wish to reproduce the entire pipeline from scratch:
+
 ```bash
-# Clone and setup
-git clone https://github.com/imrankhan37/ThamesConnectivityAnalysis.git
-cd ThamesConnectivityAnalysis
-chmod +x setup.sh
-./setup.sh
-```
-
-The `setup.sh` script will:
-- Create any missing directories (most already exist when cloning the repo)
-- Install all Python dependencies via UV
-- Display environment information and package versions for verification
-
-**Note**: Since most directories are already included in the repository, the main purpose of `setup.sh` after cloning is dependency installation and environment verification.
-
-### If raw GeoPackages are provided as .zip (upload-size constraint)
-If you received `data/raw/*.zip` files (e.g. `oprvrs_gb.gpkg.zip`), unpack them first:
-
-```bash
-bash scripts/unzip_raw_data.sh
-```
-
-### Running the Full Analysis Pipeline
-```bash
-# Phase 1: Data Ingestion
+# Phase 1: Data Ingestion (~2-3 minutes)
 uv run python scripts/phases/ingest_data.py
 
-# Phase 2: Network Construction
+# Phase 2: Network Construction (~1-2 minutes)
 uv run python scripts/phases/transform_load_network_data.py
 
-# Phase 3: Spatial Processing
+# Phase 3: Spatial Processing (~1-2 minutes)
 uv run python scripts/phases/spatial_processor.py
 
-# Phase 4: Analysis (via Jupyter notebooks)
+# Phase 4: Analysis Notebooks (~1-2 minutes each)
 uv run jupyter notebook notebooks/
 ```
+
+### Phase 1 Detail: Data Ingestion
+
+**Main script:** `scripts/phases/ingest_data.py`
+
+**Subscripts called:**
+- `scripts/data_ingestion/01_ingest_transit.py` - TfL API data
+- `scripts/data_ingestion/02_ingest_thames.py` - Thames geometry
+- `scripts/data_ingestion/03_ingest_boundary.py` - London boundaries
+
+**Note:** This phase requires internet access for API calls. All outputs are already provided in `data/raw/`.
 
 ## Project Structure
 
@@ -133,19 +169,21 @@ Network vulnerability to cascading failures, with focus on cross-Thames connecti
 
 ## Reproducibility Notes
 
-### Hardware Requirements
-- **Minimum**: 4GB RAM, any modern CPU (tested on Intel/AMD x64)
-- **Recommended**: 8GB+ RAM for large spatial operations
-- **Tested Platform**: WSL2 Ubuntu on Windows 11, Intel Core processor
+### Hardware Specifications
 
-### Performance
-- **Total runtime**: 5-10 minutes for complete pipeline on modern hardware
-  - Phase 1 (Data Ingestion): ~2-3 minutes
-  - Phase 2 (Network Construction): ~1-2 minutes
-  - Phase 3 (Spatial Processing): ~1-2 minutes
-  - Phase 4 (Analysis Notebooks): ~1-2 minutes per notebook
+**Development/Testing Environment:**
+- **CPU**: 12th Gen Intel Core i7-1260P (16 cores)
+- **RAM**: 16GB
+- **Platform**: WSL2 Ubuntu 22.04 on Windows 11
+- **Python**: 3.11.10 (managed by UV)
+
+**Minimum Requirements:**
+- **CPU**: Any modern x64 processor (4+ cores recommended)
+- **RAM**: 4GB minimum, 8GB+ recommended for spatial operations
+- **Disk**: ~500MB for all data and outputs
 
 ### Dependencies
 - All dependencies pinned in `pyproject.toml` with lockfile `uv.lock`
-- Tested on Python 3.11 with UV package manager
+- Python 3.11 enforced via UV package manager
 - Geographic operations use EPSG:27700 (British National Grid)
+- Random seed: 20250101 (set in notebooks for reproducibility)
